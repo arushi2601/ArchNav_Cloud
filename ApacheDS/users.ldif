@@ -1,0 +1,44 @@
+# Base entries
+dn: dc=example,dc=com
+objectClass: domain
+objectClass: top
+dc: example
+
+# Create People organizational unit
+dn: ou=People,dc=example,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: People
+
+# Create Roles organizational unit
+dn: ou=Roles,dc=example,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: Roles
+
+# Create Config organizational unit
+dn: ou=Config,dc=example,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: Config
+
+# Create DEFAULT config entry
+dn: cn=DEFAULT,ou=Config,dc=example,dc=com
+objectClass: organizationalRole
+objectClass: ftProperties
+objectClass: top
+cn: DEFAULT
+ftProps: ldap.url=ldap://archnav-ldap:10389
+
+# Create an admin user
+dn: uid=admin,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: ftUserAttrs
+objectClass: top
+cn: Admin User
+sn: Admin
+uid: admin
+userPassword: password
+ftId: admin
