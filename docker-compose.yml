@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  mysql:
+    container_name: archnav-mysql
+    image: mysql:5.7
+    platform: linux/amd64 
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: archemy
+      MYSQL_USER: archemy 
+      MYSQL_PASSWORD: archnav
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./MySQL/DatabaseImport.sql:/docker-entrypoint-initdb.d/DatabaseImport.sql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - fortress-net
+
+  ldap:
+    container_name: archnav-ldap
+    image: osixia/openldap:1.5.0
+    ports:
+      - "389:389"
+      - "636:636"
+    environment:
+      LDAP_ORGANISATION: "ArchNav"
+      LDAP_DOMAIN: "archnav.local"
+      LDAP_ADMIN_PASSWORD: "adminpassword"
+    volumes:
+      - ldap_data:/var/lib/ldap
+      - ldap_config:/etc/ldap/slapd.d
+    networks:
+      - fortress-net
+
+  fortress:
+    image: apachefortress/rest:2.0.3
+    ports:
+      - "8081:8080"
+    environment:
+      LDAP_HOST: archnav-ldap
+      LDAP_PORT: 389
+      LDAP_ADMIN_PASSWORD: adminpassword
+    volumes:
+      - ./Fortress/fortress.properties:/usr/local/tomcat/fortress.properties
+    depends_on:
+      - ldap
+    command: ["/bin/bash", "/usr/local/tomcat/update-fortress.sh"]
+
+  fortress-web:
+    build: ./Fortress
+    ports:
+      - "8082:8080"  # Different port to avoid conflicts
+    environment:
+      - LDAP_HOST=archnav-ldap
+      - LDAP_PORT=389
+    depends_on:
+      - ldap
+    networks:
+      - fortress-net
+      
+  archnav-app:
+    container_name: archnav-app
+    build:
+      context: ./ArchNav
+    ports:
+      - "9999:8082"
+      - "4849:4848"
+    environment:
+      DB_HOST: archnav-mysql
+      DB_PORT: 3306
+      DB_USER: archemy
+      DB_PASSWORD: archnav
+      DB_NAME: archemy
+      FORTRESS_HOST: archnav-fortress
+      FORTRESS_PORT: 8082
+      LDAP_HOST: archnav-ldap
+      LDAP_PORT: 389  # Changed to standard LDAP port
+    depends_on:
+      - mysql
+      - fortress
+    networks:
+      - fortress-net
+
+networks:
+  fortress-net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  ldap_data:
+  ldap_config:

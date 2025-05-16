@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: archnav-deployment
+  labels:
+    app: archnav
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: archnav
+  template:
+    metadata:
+      labels:
+        app: archnav
+    spec:
+      containers:
+      - name: archnav
+        image: 002125563322.dkr.ecr.us-west-2.amazonaws.com/archnav:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_HOST
+          value: mysql
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_USER
+          value: archnav
+        - name: DB_PASSWORD
+          value: archnav
+        - name: DB_NAME
+          value: archemy
+        - name: LDAP_HOST
+          value: apacheds
+        - name: LDAP_PORT
+          value: "10389"
+        - name: FORTRESS_HOST
+          value: fortress-service
+        - name: FORTRESS_PORT
+          value: "8080"
