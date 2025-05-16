@@ -1,0 +1,51 @@
+<domain application-root="${com.sun.aas.instanceRoot}/applications" version="5" log-root="${com.sun.aas.instanceRoot}/logs">
+  <property name="administrative.domain.name" value="domain1" />
+
+  <resources>
+    <jdbc-connection-pool datasource-classname="com.mysql.jdbc.jdbc2.optional.MysqlXADataSource"
+                          name="MySQLConnPool"
+                          res-type="javax.sql.XADataSource"
+                          is-isolation-level-guaranteed="false">
+      <property name="user" value="archemy"/>
+      <property name="password" value="archnav"/>
+      <property name="DatabaseName" value="archemy"/>
+      <property name="ServerName" value="archnav-mysql"/>
+      <property name="port" value="3306"/>
+      <property name="useSSL" value="false"/>
+
+    </jdbc-connection-pool>
+
+    <jdbc-resource pool-name="MySQLConnPool" jndi-name="jdbcMySQLDataSource"/>
+    <jdbc-resource pool-name="MySQLConnPool" jndi-name="jdbc/archemyapp"/>
+  </resources>
+
+  <servers>
+    <server config-ref="server-config" name="server">
+      <resource-ref ref="jdbcMySQLDataSource"/>
+      <resource-ref ref="jdbc/archemyapp"/>
+    </server>
+  </servers>
+
+  <configs>
+    <config name="server-config">
+      <http-service>
+        <virtual-server network-listeners="http-listener-1" id="server"/>
+      </http-service>
+      <network-config>
+        <protocols>
+          <protocol name="http-listener-1">
+            <http default-virtual-server="server">
+              <file-cache/>
+            </http>
+          </protocol>
+        </protocols>
+        <network-listeners>
+          <network-listener protocol="http-listener-1" port="9999" name="http-listener-1" thread-pool="http-thread-pool" transport="tcp"/>
+        </network-listeners>
+        <transports>
+          <transport name="tcp"/>
+        </transports>
+      </network-config>
+    </config>
+  </configs>
+</domain>
